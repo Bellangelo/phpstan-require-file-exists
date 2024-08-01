@@ -1,0 +1,12 @@
+services:
+    -
+        class: Bellangelo\PHPStanRequireFileExists\RequireFileExistsRule
+        arguments:
+           - @reflectionProvider
+        tags: [phpstan.rules.rule]
+
+parameters:
+    phpVersion: 70400
+    level: 9
+    paths:
+        - files
