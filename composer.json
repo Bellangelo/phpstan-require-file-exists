@@ -27,6 +27,7 @@
     },
     "scripts": {
         "phpcs": "./vendor/bin/phpcs --standard=PSR12 src",
-        "phpcs:fix": "./vendor/bin/phpcbf --standard=PSR12 src"
+        "phpcs:fix": "./vendor/bin/phpcbf --standard=PSR12 src",
+        "phpstan": "./vendor/bin/phpstan analyse src -c phpstan.neon"
     }
 }
