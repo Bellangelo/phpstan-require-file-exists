@@ -29,6 +29,8 @@ You can find a `phpstan.neon` example in the `tests` directory, here: [tests/php
 ## Unsupported cases
 - `require $file;` - won't throw an error since it cannot read variables.
 - `require (new MyClass())->file;` - won't throw an error since it cannot read class properties.
+- `require (new MyClass())->getFile();` - won't throw an error since it cannot read class methods.
+- `require getFile();` - won't throw an error since it cannot read functions.
 
 ## Development
 For local development and testing, `composer.json` contains several commands that you can run.
