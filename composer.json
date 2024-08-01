@@ -28,8 +28,8 @@
         "phpunit/phpunit": "^9.6"
     },
     "scripts": {
-        "phpcs": "./vendor/bin/phpcs --standard=PSR12 src",
-        "phpcs:fix": "./vendor/bin/phpcbf --standard=PSR12 src",
+        "phpcs": "./vendor/bin/phpcs --standard=PSR12 src tests",
+        "phpcs:fix": "./vendor/bin/phpcbf --standard=PSR12 src tests",
         "phpstan": "./vendor/bin/phpstan analyse src -c phpstan.neon",
         "docker:shell": "docker run --rm --interactive --tty --volume $PWD:/app composer /bin/sh"
     }

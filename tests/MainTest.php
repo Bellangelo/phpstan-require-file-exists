@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class MainTest extends TestCase
 {
-    public function test_happy_path(): void
+    public function testHappyPath(): void
     {
         $this->assertTrue(true);
     }
