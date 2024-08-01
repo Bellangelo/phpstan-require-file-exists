@@ -1,0 +1,1 @@
+# phpstan-require-file-exists
