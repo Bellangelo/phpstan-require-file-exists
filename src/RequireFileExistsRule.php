@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bellangelo\RequireFileExistsRule;
+namespace Bellangelo\PHPStanRequireFileExists;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\Include_;
