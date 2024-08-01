@@ -15,6 +15,9 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
+/**
+ * @implements Rule<Include_>
+ */
 class RequireFileExistsRule implements Rule
 {
     private ReflectionProvider $reflectionProvider;
