@@ -29,3 +29,10 @@ You can find a `phpstan.neon` example in the `tests` directory, here: [tests/php
 ## Unsupported cases
 - `require $file;` - won't throw an error since it cannot read variables.
 - `require (new MyClass())->file;` - won't throw an error since it cannot read class properties.
+
+## Development
+For local development and testing, `composer.json` contains several commands that you can run.
+- `composer run tests ` - runs the PHPUnit tests.
+- `composer run phpstan` - runs PHPStan on the `src` and `tests` directories.
+- `composer run phpcs` - runs PHP CodeSniffer on the `src` and `tests` directories.
+- `composer run phpcs:fix` - runs PHP CodeSniffer on the `src` and `tests` directories and tries to fix the issues.
