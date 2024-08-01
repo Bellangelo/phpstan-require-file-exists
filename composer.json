@@ -2,6 +2,11 @@
     "name": "bellangelo/phpstan-require-file-exists",
     "description": "A PHPStan rule for checking if the files mentioned in the imports really exist.",
     "type": "library",
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    },
     "require": {
         "php": ">=7.4",
         "phpstan/phpstan": "^1.11"
@@ -9,7 +14,7 @@
     "license": "Apache-2.0",
     "autoload": {
         "psr-4": {
-            "Bellangelo\\PhpstanRequireFileExists\\": "src/"
+            "Bellangelo\\PHPStanRequireFileExists\\": "src/"
         }
     },
     "authors": [
