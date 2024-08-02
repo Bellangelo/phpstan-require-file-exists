@@ -57,20 +57,20 @@ class RequireFileExistsRule implements Rule
             return $node->value;
         }
 
-        if ($node instanceof Concat) {
-            $left = $this->resolveFilePath($node->left, $scope);
-            $right = $this->resolveFilePath($node->right, $scope);
-            if ($left !== null && $right !== null) {
-                return $left . $right;
-            }
-        }
-
         if ($node instanceof Dir) {
             return dirname($scope->getFile());
         }
 
         if ($node instanceof ClassConstFetch) {
             return $this->resolveClassConstant($node);
+        }
+
+        if ($node instanceof Concat) {
+            $left = $this->resolveFilePath($node->left, $scope);
+            $right = $this->resolveFilePath($node->right, $scope);
+            if ($left !== null && $right !== null) {
+                return $left . $right;
+            }
         }
 
         return null;
