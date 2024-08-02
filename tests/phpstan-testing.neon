@@ -10,3 +10,7 @@ parameters:
     level: 9
     paths:
         - files
+    scanDirectories:
+        - ../src
+    bootstrapFiles:
+        - phpstan-testing-bootstrap.php
