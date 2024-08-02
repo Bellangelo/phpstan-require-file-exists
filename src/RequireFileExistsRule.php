@@ -9,6 +9,8 @@ use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\Include_;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\MagicConst\Dir;
 use PhpParser\Node\Scalar\String_;
 use PHPStan\Analyser\Scope;
@@ -83,7 +85,7 @@ class RequireFileExistsRule implements Rule
 
     private function resolveClassConstant(ClassConstFetch $node): ?string
     {
-        if ($node->class instanceof Node\Name && $node->name instanceof Node\Identifier) {
+        if ($node->class instanceof Name && $node->name instanceof Identifier) {
             $className = (string) $node->class;
             $constantName = $node->name->toString();
 
@@ -103,7 +105,7 @@ class RequireFileExistsRule implements Rule
 
     private function resolveConstant(ConstFetch $node): ?string
     {
-        if ($node->name instanceof Node\Name) {
+        if ($node->name instanceof Name) {
             $constantName = (string) $node->name;
             if (defined($constantName)) {
                 $constantValue = constant($constantName);
