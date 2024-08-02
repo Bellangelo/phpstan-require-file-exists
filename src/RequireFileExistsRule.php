@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bellangelo\PHPStanRequireFileExists;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\Include_;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -65,6 +66,10 @@ class RequireFileExistsRule implements Rule
             return $this->resolveClassConstant($node);
         }
 
+        if ($node instanceof ConstFetch) {
+            return $this->resolveConstant($node);
+        }
+
         if ($node instanceof Concat) {
             $left = $this->resolveFilePath($node->left, $scope);
             $right = $this->resolveFilePath($node->right, $scope);
@@ -90,6 +95,20 @@ class RequireFileExistsRule implements Rule
                     if (is_string($constantValue)) {
                         return $constantValue;
                     }
+                }
+            }
+        }
+        return null;
+    }
+
+    private function resolveConstant(ConstFetch $node): ?string
+    {
+        if ($node->name instanceof Node\Name) {
+            $constantName = (string) $node->name;
+            if (defined($constantName)) {
+                $constantValue = constant($constantName);
+                if (is_string($constantValue)) {
+                    return $constantValue;
                 }
             }
         }
