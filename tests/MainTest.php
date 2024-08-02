@@ -10,7 +10,7 @@ class MainTest extends TestCase
 {
     public function testHappyPath(): void
     {
-        $expectedTotalErrors = 12;
+        $expectedTotalErrors = 16;
         $expectedErrorsPerFile = [
             'file_exists_but_path_is_relative.php' => [
                 'errors' => 4,
@@ -23,6 +23,10 @@ class MainTest extends TestCase
             'included_file_does_not_exist_using_class_const.php' => [
                 'errors' => 4,
                 'lines' => [7, 8, 9, 10]
+            ],
+            'included_file_does_not_exist_using_const.php' => [
+                'errors' => 4,
+                'lines' => [5, 6, 7, 8]
             ],
         ];
         $errorStartsWith = 'Included or required file "';
