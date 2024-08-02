@@ -25,6 +25,7 @@ You can find a `phpstan.neon` example in the `tests` directory, here: [tests/php
 - `require 'file.php';` - might not find it since the path is relative.
 - `require __DIR__ . '/file.php';` - can find it, if it exists.
 - `require __DIR__ . '/' . MyClass::MY_CONST;` - can find it if the const has the correct value from the start.
+- `require __DIR__ . '/' . MY_CONST;` - can find it if the constant is defined in the bootstrap file.
 
 ## Unsupported cases
 - `require $file;` - won't throw an error since it cannot read variables.
