@@ -5,29 +5,31 @@ declare(strict_types=1);
 namespace Bellangelo\PHPStanRequireFileExists;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\Include_;
-use PhpParser\Node\Expr\BinaryOp\Concat;
-use PhpParser\Node\Expr\ClassConstFetch;
-use PhpParser\Node\Identifier;
-use PhpParser\Node\Name;
-use PhpParser\Node\Scalar\MagicConst\Dir;
-use PhpParser\Node\Scalar\String_;
 use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\File\FileHelper;
+use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\ShouldNotHappenException;
+use function array_merge;
+use function dirname;
+use function explode;
+use function get_include_path;
+use function is_file;
+use function sprintf;
+use const PATH_SEPARATOR;
 
 /**
  * @implements Rule<Include_>
  */
-class RequireFileExistsRule implements Rule
+final class RequireFileExistsRule implements Rule
 {
-    private ReflectionProvider $reflectionProvider;
+    private string $currentWorkingDirectory;
 
-    public function __construct(ReflectionProvider $reflectionProvider)
+    public function __construct(string $currentWorkingDirectory)
     {
-        $this->reflectionProvider = $reflectionProvider;
+        $this->currentWorkingDirectory = $currentWorkingDirectory;
     }
 
     public function getNodeType(): string
@@ -37,83 +39,104 @@ class RequireFileExistsRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        if ($node instanceof Include_) {
-            $filePath = $this->resolveFilePath($node->expr, $scope);
-            if ($filePath !== null && !file_exists($filePath)) {
-                return [
-                    RuleErrorBuilder::message(
-                        sprintf(
-                            'Included or required file "%s" does not exist.',
-                            $filePath
-                        )
-                    )->build(),
-                ];
+        $errors = [];
+        $paths = $this->resolveFilePaths($node, $scope);
+
+        foreach ($paths as $path) {
+            if ($this->doesFileExist($path, $scope)) {
+                continue;
             }
+
+            $errors[] = $this->getErrorMessage($node, $path);
         }
 
-        return [];
+        return $errors;
     }
 
-    private function resolveFilePath(Node $node, Scope $scope): ?string
+    /**
+     * We cannot use `stream_resolve_include_path` as it works based on the calling script.
+     * This method simulates the behavior of `stream_resolve_include_path` but for the given scope.
+     * The priority order is the following:
+     * 	1. The current working directory.
+     * 	2. The include path.
+     *  3. The path of the script that is being executed.
+     */
+    private function doesFileExist(string $path, Scope $scope): bool
     {
-        if ($node instanceof String_) {
-            return $node->value;
-        }
+        $directories = array_merge(
+            [$this->currentWorkingDirectory],
+            explode(PATH_SEPARATOR, get_include_path()),
+            [dirname($scope->getFile())],
+        );
 
-        if ($node instanceof Dir) {
-            return dirname($scope->getFile());
-        }
-
-        if ($node instanceof ClassConstFetch) {
-            return $this->resolveClassConstant($node);
-        }
-
-        if ($node instanceof ConstFetch) {
-            return $this->resolveConstant($node);
-        }
-
-        if ($node instanceof Concat) {
-            $left = $this->resolveFilePath($node->left, $scope);
-            $right = $this->resolveFilePath($node->right, $scope);
-            if ($left !== null && $right !== null) {
-                return $left . $right;
+        foreach ($directories as $directory) {
+            if ($this->doesFileExistForDirectory($path, $directory)) {
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 
-    private function resolveClassConstant(ClassConstFetch $node): ?string
+    private function doesFileExistForDirectory(string $path, string $workingDirectory): bool
     {
-        if ($node->class instanceof Name && $node->name instanceof Identifier) {
-            $className = (string) $node->class;
-            $constantName = $node->name->toString();
+        $fileHelper = new FileHelper($workingDirectory);
+        $normalisedPath = $fileHelper->normalizePath($path);
+        $absolutePath = $fileHelper->absolutizePath($normalisedPath);
 
-            if ($this->reflectionProvider->hasClass($className)) {
-                $classReflection = $this->reflectionProvider->getClass($className);
-                if ($classReflection->hasConstant($constantName)) {
-                    $constantReflection = $classReflection->getConstant($constantName);
-                    $constantValue = $constantReflection->getValue();
-                    if (is_string($constantValue)) {
-                        return $constantValue;
-                    }
-                }
-            }
-        }
-        return null;
+        return is_file($absolutePath);
     }
 
-    private function resolveConstant(ConstFetch $node): ?string
+    private function getErrorMessage(Include_ $node, string $filePath): IdentifierRuleError
     {
-        if ($node->name instanceof Name) {
-            $constantName = (string) $node->name;
-            if (defined($constantName)) {
-                $constantValue = constant($constantName);
-                if (is_string($constantValue)) {
-                    return $constantValue;
-                }
-            }
+        $message = 'Path in %s() "%s" is not a file or it does not exist.';
+
+        switch ($node->type) {
+            case Include_::TYPE_REQUIRE:
+                $type = 'require';
+                $identifierType = 'require';
+                break;
+            case Include_::TYPE_REQUIRE_ONCE:
+                $type = 'require_once';
+                $identifierType = 'requireOnce';
+                break;
+            case Include_::TYPE_INCLUDE:
+                $type = 'include';
+                $identifierType = 'include';
+                break;
+            case Include_::TYPE_INCLUDE_ONCE:
+                $type = 'include_once';
+                $identifierType = 'includeOnce';
+                break;
+            default:
+                throw new ShouldNotHappenException('Rule should have already validated the node type.');
         }
-        return null;
+
+        $identifier = sprintf('%s.fileNotFound', $identifierType);
+
+        return RuleErrorBuilder::message(
+            sprintf(
+                $message,
+                $type,
+                $filePath,
+            ),
+        )->identifier($identifier)->build();
     }
+
+    /**
+     * @return array<string>
+     */
+    private function resolveFilePaths(Include_ $node, Scope $scope): array
+    {
+        $paths = [];
+        $type = $scope->getType($node->expr);
+        $constantStrings = $type->getConstantStrings();
+
+        foreach ($constantStrings as $constantString) {
+            $paths[] = $constantString->getValue();
+        }
+
+        return $paths;
+    }
+
 }
