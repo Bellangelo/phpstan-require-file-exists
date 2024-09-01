@@ -1,16 +1,18 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Tests;
 
 use Bellangelo\PHPStanRequireFileExists\RequireFileExistsRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
+
 use function get_include_path;
 use function implode;
 use function realpath;
 use function set_include_path;
+
 use const PATH_SEPARATOR;
 
 /**
@@ -18,7 +20,6 @@ use const PATH_SEPARATOR;
  */
 class RequireFileExistsRuleTest extends RuleTestCase
 {
-
     private RequireFileExistsRule $rule;
 
     public function setUp(): void
@@ -135,5 +136,4 @@ class RequireFileExistsRuleTest extends RuleTestCase
             $this->rule = $this->getDefaultRule();
         }
     }
-
 }

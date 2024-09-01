@@ -12,12 +12,14 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\ShouldNotHappenException;
+
 use function array_merge;
 use function dirname;
 use function explode;
 use function get_include_path;
 use function is_file;
 use function sprintf;
+
 use const PATH_SEPARATOR;
 
 /**
@@ -57,8 +59,8 @@ final class RequireFileExistsRule implements Rule
      * We cannot use `stream_resolve_include_path` as it works based on the calling script.
      * This method simulates the behavior of `stream_resolve_include_path` but for the given scope.
      * The priority order is the following:
-     * 	1. The current working directory.
-     * 	2. The include path.
+     *  1. The current working directory.
+     *  2. The include path.
      *  3. The path of the script that is being executed.
      */
     private function doesFileExist(string $path, Scope $scope): bool
@@ -80,6 +82,7 @@ final class RequireFileExistsRule implements Rule
 
     private function doesFileExistForDirectory(string $path, string $workingDirectory): bool
     {
+        /** @phpstan-ignore-next-line */
         $fileHelper = new FileHelper($workingDirectory);
         $normalisedPath = $fileHelper->normalizePath($path);
         $absolutePath = $fileHelper->absolutizePath($normalisedPath);
@@ -138,5 +141,4 @@ final class RequireFileExistsRule implements Rule
 
         return $paths;
     }
-
 }

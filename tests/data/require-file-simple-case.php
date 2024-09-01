@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 $fileThatExists = __DIR__ . '/include-me-to-prove-you-work.txt';
 $fileThatDoesNotExist = 'a-file-that-does-not-exist.php';
